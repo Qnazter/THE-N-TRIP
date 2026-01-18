@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <title>Pool Villa Hua Hin Map</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+    #map {
+      height: 100vh;
+      width: 100%;
+    }
+    .control-box {
+      background: white;
+      padding: 8px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .place-list a {
+      display: block;
+      text-decoration: none;
+      color: #0077cc;
+      margin-bottom: 4px;
+    }
+    .place-list a:hover {
+      text-decoration: underline;
+    }
+    .toggle-btn {
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  const map = L.map('map');
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  /* ===== ICONS ===== */
+  const base = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/';
+  const shadow = 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png';
+
+  const icon = c => L.icon({
+    iconUrl: base + `marker-icon-${c}.png`,
+    shadowUrl: shadow,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
+  });
+
+  const icons = {
+    villa: icon('blue'),
+    beach: icon('orange'),
+    airport: icon('violet'),
+    adventure: icon('red'),
+    island: icon('green'),
+    cave: icon('black')
+  };
+
+  /* ===== LOCATIONS ===== */
+  const locations = [
+    { name: 'Venice Beach Village Hua Hin', lat: 12.64665, lng: 99.95573, type: 'villa' },
+    { name: 'Modern Life Pool Villa Hua Hin', lat: 12.62056, lng: 99.93131, type: 'villa' },
+    { name: 'Indy Hip Hua Hin Pool Villa', lat: 12.62167, lng: 99.93062, type: 'villa' },
+    { name: 'NP Pool Villa Hua Hin', lat: 12.59967, lng: 99.94107, type: 'villa' },
+    { name: 'Melancia Pool Villa Hua Hin', lat: 12.64571, lng: 99.94426, type: 'villa' },
+    { name: 'Double P Pool Villa Hua Hin', lat: 12.59972, lng: 99.93988, type: 'villa' },
+
+    { name: 'ตลาดโต้รุ่งหัวหิน', lat: 12.57131, lng: 99.95549, type: 'beach' },
+    { name: 'Hua Hin Airport', lat: 12.62804, lng: 99.95170, type: 'airport' },
+    { name: 'Tree Top Adventure Park Hua Hin', lat: 12.52879, lng: 99.90350, type: 'adventure' },
+    { name: 'เขาตะเกียบ', lat: 12.51596, lng: 99.98196, type: 'beach' },
+    { name: 'เกาะทะลุ', lat: 11.08609, lng: 99.47241, type: 'island' },
+    { name: 'ถ้ำพระยานคร', lat: 12.20603, lng: 100.01028, type: 'cave' }
+  ];
+
+  const bounds = [];
+  const markerMap = [];
+
+  locations.forEach((p, i) => {
+    const m = L.marker([p.lat, p.lng], { icon: icons[p.type] })
+      .addTo(map)
+      .bindPopup(`<b>${p.name}</b>`);
+    markerMap.push(m);
+    bounds.push([p.lat, p.lng]);
+  });
+
+  map.fitBounds(bounds, { padding: [50, 50] });
+
+  /* ===== LEGEND ===== */
+  /* ===== LEGEND ===== */
+    const legend = L.control({ position: 'bottomright' });
+
+    legend.onAdd = () => {
+    const d = L.DomUtil.create('div', 'control-box');
+    d.innerHTML = `
+        <b>Legend</b><br>
+        🏠 Pool Villa<br>
+        🏖️ ที่เที่ยว / ตลาด<br>
+        ✈️ สนามบิน<br>
+        🌲 Adventure<br>
+        🏝️ เกาะ<br>
+        🕳️ ถ้ำ
+    `;
+    return d;
+    };
+
+    legend.addTo(map);
+
+
+  /* ===== TOGGLE PLACE LIST ===== */
+  const listControl = L.control({ position: 'topleft' });
+  listControl.onAdd = () => {
+    const div = L.DomUtil.create('div', 'control-box');
+
+    div.innerHTML = `
+      <div class="toggle-btn">☰ สถานที่</div>
+      <div id="placeList" class="place-list hidden"></div>
+    `;
+
+    const listDiv = div.querySelector('#placeList');
+    const toggle = div.querySelector('.toggle-btn');
+
+    locations.forEach((p, i) => {
+      const a = document.createElement('a');
+      a.href = '#';
+      a.textContent = p.name;
+      a.onclick = e => {
+        e.preventDefault();
+        map.setView([p.lat, p.lng], 15);
+        markerMap[i].openPopup();
+        listDiv.classList.add('hidden');
+      };
+      listDiv.appendChild(a);
+    });
+
+    toggle.onclick = () => {
+      listDiv.classList.toggle('hidden');
+    };
+
+    return div;
+  };
+  listControl.addTo(map);
+</script>
+
+</body>
+</html>
